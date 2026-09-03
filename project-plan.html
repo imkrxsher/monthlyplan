@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>iMKRXSHER — Project Plan</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg:      #0D0D14;
+    --surface: #13131C;
+    --card:    #1A1A26;
+    --card2:   #1F1F2E;
+    --border:  #262636;
+    --violet:  #7B2FFF;
+    --cyan:    #00D4FF;
+    --text:    #EEEDF8;
+    --muted:   #6B6B8A;
+    --dim:     #3A3A52;
+    --green:   #22C55E;
+    --yellow:  #EAB308;
+    --red:     #EF4444;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── TOP BAR ── */
+  .topbar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    height: 56px;
+    background: rgba(13,13,20,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 1.5rem;
+  }
+  .topbar-brand {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700; font-size: 1rem; letter-spacing: .04em;
+    background: linear-gradient(90deg, var(--violet), var(--cyan));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    text-decoration: none;
+  }
+  .topbar-title {
+    font-size: .8rem; color: var(--muted);
+    font-weight: 400; letter-spacing: .02em;
+  }
+  .topbar-right { display: flex; align-items: center; gap: .75rem; }
+  .summary-pill {
+    display: flex; align-items: center; gap: .4rem;
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 999px; padding: .25rem .75rem;
+    font-size: .75rem; color: var(--muted);
+  }
+  .summary-pill span { color: var(--text); font-weight: 600; }
+
+  /* ── LAYOUT ── */
+  .layout {
+    display: grid;
+    grid-template-columns: 220px 1fr 340px;
+    gap: 0;
+    margin-top: 56px;
+    min-height: calc(100vh - 56px);
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 1.5rem 1rem;
+    position: sticky; top: 56px;
+    height: calc(100vh - 56px);
+    overflow-y: auto;
+  }
+  .sidebar-label {
+    font-size: .65rem; letter-spacing: .15em; text-transform: uppercase;
+    color: var(--dim); font-weight: 600; margin-bottom: .75rem;
+    padding: 0 .5rem;
+  }
+  .week-btn {
+    display: flex; align-items: center; justify-content: space-between;
+    width: 100%; padding: .6rem .75rem; border-radius: 8px;
+    border: none; background: transparent; color: var(--muted);
+    font-family: 'Inter', sans-serif; font-size: .875rem;
+    cursor: pointer; transition: all .15s; margin-bottom: .25rem;
+    text-align: left;
+  }
+  .week-btn:hover { background: var(--card); color: var(--text); }
+  .week-btn.active { background: rgba(123,47,255,.15); color: var(--violet); border: 1px solid rgba(123,47,255,.3); }
+  .week-btn .wk-count { font-size: .7rem; background: var(--card2); padding: 2px 7px; border-radius: 999px; }
+  .week-btn.active .wk-count { background: rgba(123,47,255,.25); color: var(--violet); }
+
+  .sidebar-divider { height: 1px; background: var(--border); margin: 1rem .5rem; }
+
+  .stat-block { padding: .5rem; }
+  .stat-row { display: flex; justify-content: space-between; align-items: center; padding: .4rem 0; }
+  .stat-row span { font-size: .8rem; color: var(--muted); }
+  .stat-row strong { font-size: .8rem; color: var(--text); }
+  .stat-bar { height: 4px; background: var(--card2); border-radius: 999px; margin-top: .25rem; overflow: hidden; }
+  .stat-bar-fill { height: 100%; background: linear-gradient(90deg, var(--violet), var(--cyan)); border-radius: 999px; transition: width .4s; }
+
+  /* ── MAIN ── */
+  .main { padding: 1.5rem; overflow-y: auto; }
+  .week-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 1.25rem;
+  }
+  .week-header h2 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.1rem; font-weight: 600; color: var(--text);
+  }
+  .week-header p { font-size: .8rem; color: var(--muted); margin-top: 2px; }
+
+  .proj-list { display: flex; flex-direction: column; gap: .75rem; }
+  .proj-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    cursor: pointer;
+    transition: all .15s;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 1rem;
+  }
+  .proj-card:hover { border-color: var(--dim); background: var(--card2); }
+  .proj-card.selected { border-color: var(--violet); background: rgba(123,47,255,.06); }
+
+  .proj-icon {
+    width: 40px; height: 40px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.2rem; flex-shrink: 0;
+  }
+  .icon-wd { background: rgba(123,47,255,.15); }
+  .icon-we { background: rgba(0,212,255,.1); }
+
+  .proj-info h3 { font-size: .9rem; font-weight: 500; color: var(--text); margin-bottom: 3px; }
+  .proj-info p { font-size: .78rem; color: var(--muted); }
+
+  .proj-right { display: flex; flex-direction: column; align-items: flex-end; gap: .4rem; }
+  .tag-type {
+    font-size: .65rem; padding: 2px 8px; border-radius: 999px;
+    font-weight: 500; white-space: nowrap;
+  }
+  .tag-wd { background: rgba(123,47,255,.15); color: #A78BFA; }
+  .tag-we { background: rgba(0,212,255,.1); color: #67E8F9; }
+  .status-dot { display: flex; align-items: center; gap: 5px; font-size: .72rem; color: var(--muted); }
+  .dot { width: 6px; height: 6px; border-radius: 50%; }
+  .dot-todo { background: var(--dim); }
+  .dot-wip { background: var(--yellow); }
+  .dot-done { background: var(--green); }
+
+  /* ── BRIEF PANEL ── */
+  .brief-panel {
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    padding: 1.5rem;
+    position: sticky; top: 56px;
+    height: calc(100vh - 56px);
+    overflow-y: auto;
+  }
+  .empty-state {
+    height: 100%; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    color: var(--dim); text-align: center; gap: .75rem;
+  }
+  .empty-icon { font-size: 2.5rem; opacity: .4; }
+  .empty-state p { font-size: .85rem; max-width: 180px; line-height: 1.5; }
+
+  .brief-from {
+    display: flex; align-items: center; gap: .5rem;
+    font-size: .75rem; color: var(--muted); margin-bottom: 1.25rem;
+  }
+  .brief-from .avatar {
+    width: 26px; height: 26px; border-radius: 50%;
+    background: rgba(123,47,255,.2); color: #A78BFA;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .7rem; font-weight: 600; flex-shrink: 0;
+  }
+  .brief-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1rem; font-weight: 600; color: var(--text);
+    margin-bottom: .35rem;
+  }
+  .brief-client { font-size: .78rem; color: var(--muted); margin-bottom: 1rem; }
+
+  .brief-msg {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 8px; padding: .85rem 1rem;
+    font-size: .82rem; color: var(--muted);
+    line-height: 1.7; font-style: italic; margin-bottom: 1.25rem;
+    border-left: 3px solid rgba(123,47,255,.4);
+  }
+
+  .brief-section { margin-bottom: 1rem; }
+  .brief-section-label {
+    font-size: .65rem; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--dim); font-weight: 600; margin-bottom: .5rem;
+  }
+  .deliv-list { list-style: none; display: flex; flex-direction: column; gap: .35rem; }
+  .deliv-list li {
+    font-size: .82rem; color: var(--text);
+    display: flex; align-items: flex-start; gap: .5rem; line-height: 1.5;
+  }
+  .deliv-list li::before {
+    content: ''; width: 5px; height: 5px; border-radius: 50%;
+    background: var(--violet); flex-shrink: 0; margin-top: 6px;
+  }
+  .tag-wrap { display: flex; flex-wrap: wrap; gap: .35rem; }
+  .tag {
+    font-size: .72rem; padding: 3px 9px; border-radius: 999px;
+    background: var(--card2); color: var(--muted);
+    border: 1px solid var(--border);
+  }
+  .tag.violet { background: rgba(123,47,255,.12); color: #A78BFA; border-color: rgba(123,47,255,.25); }
+  .tag.price { background: rgba(0,212,255,.08); color: #67E8F9; border-color: rgba(0,212,255,.2); }
+
+  .status-row { display: flex; gap: .4rem; margin-top: 1.25rem; }
+  .st-btn {
+    flex: 1; padding: .5rem .4rem; border-radius: 7px;
+    border: 1px solid var(--border); background: var(--card);
+    color: var(--muted); font-size: .78rem; cursor: pointer;
+    font-family: 'Inter', sans-serif; transition: all .15s;
+  }
+  .st-btn:hover { border-color: var(--dim); }
+  .st-btn.a-todo { background: var(--card2); color: var(--text); border-color: var(--dim); }
+  .st-btn.a-wip { background: rgba(234,179,8,.1); color: var(--yellow); border-color: rgba(234,179,8,.3); }
+  .st-btn.a-done { background: rgba(34,197,94,.1); color: var(--green); border-color: rgba(34,197,94,.3); }
+
+  /* ── MOBILE ── */
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; }
+    .sidebar, .brief-panel { display: none; }
+    .sidebar.open, .brief-panel.open { display: block; position: fixed; inset: 56px 0 0; z-index: 50; height: calc(100vh - 56px); }
+  }
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <span class="topbar-brand">iMKRXSHER</span>
+  <span class="topbar-title">Project Plan — 1 Bulan</span>
+  <div class="topbar-right">
+    <div class="summary-pill">Done <span id="pillDone">0</span> / <span id="pillTotal">8</span></div>
+  </div>
+</header>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <p class="sidebar-label">Minggu</p>
+    <button class="week-btn active" id="wb1" onclick="setWeek(1)">
+      Minggu 1 <span class="wk-count">2</span>
+    </button>
+    <button class="week-btn" id="wb2" onclick="setWeek(2)">
+      Minggu 2 <span class="wk-count">2</span>
+    </button>
+    <button class="week-btn" id="wb3" onclick="setWeek(3)">
+      Minggu 3 <span class="wk-count">2</span>
+    </button>
+    <button class="week-btn" id="wb4" onclick="setWeek(4)">
+      Minggu 4 <span class="wk-count">2</span>
+    </button>
+
+    <div class="sidebar-divider"></div>
+    <p class="sidebar-label">Progress</p>
+    <div class="stat-block">
+      <div class="stat-row"><span>Total project</span><strong>8</strong></div>
+      <div class="stat-row"><span>Selesai</span><strong id="sbDone">0</strong></div>
+      <div class="stat-row"><span>In progress</span><strong id="sbWip">0</strong></div>
+      <div class="stat-bar"><div class="stat-bar-fill" id="sbBar" style="width:0%"></div></div>
+
+      <div class="sidebar-divider"></div>
+      <p class="sidebar-label">Jenis</p>
+      <div class="stat-row"><span>Weekday</span><strong>4</strong></div>
+      <div class="stat-row"><span>Weekend</span><strong>4</strong></div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="week-header">
+      <div>
+        <h2 id="weekTitle">Minggu 1</h2>
+        <p id="weekSub">2 project — hari ke-1 s/d 7</p>
+      </div>
+    </div>
+    <div class="proj-list" id="projList"></div>
+  </main>
+
+  <!-- BRIEF PANEL -->
+  <aside class="brief-panel" id="briefPanel">
+    <div class="empty-state" id="emptyState">
+      <div class="empty-icon">📋</div>
+      <p>Pilih project untuk lihat brief dari klien</p>
+    </div>
+    <div id="briefContent" style="display:none"></div>
+  </aside>
+
+</div>
+
+<script>
+const PROJECTS = [
+  {
+    week:1, type:'weekday', icon:'🔁',
+    title:'Logo Redraw — Bimbel Cahaya',
+    client:'Ibu Ratna / Bimbel Cahaya Ilmu',
+    deadline:'Hari ke-1 s/d 5',
+    estimasi:'Rp 35.000–50.000',
+    software:'Affinity Designer / Photoshop',
+    msg:'"Halo, saya punya logo bimbel saya tapi kualitasnya jelek banget, blur kalau diperbesar. Tolong dibikin bersih dan tajam ya, mau dipake buat spanduk depan gedung. Yang penting tulisan dan gambarnya kelihatan jelas."',
+    deliverables:['PNG transparan resolusi tinggi (300dpi)','Ukuran minimal 3000×3000px','Warna asli dipertahankan'],
+    tags:['Logo Redraw','Spanduk','PNG'],
+  },
+  {
+    week:1, type:'weekend', icon:'🎨',
+    title:'Poster Event — Karang Taruna',
+    client:'Mas Dika / Karang Taruna RT 05',
+    deadline:'Sabtu–Minggu minggu 1',
+    estimasi:'Rp 50.000–75.000',
+    software:'Canva / Photoshop',
+    msg:'"Bro, kita mau bikin acara 17 Agustusan nih. Butuh poster yang keren buat disebar di WhatsApp sama ditempel di papan pengumuman. Temanya merah putih, ada info tanggal, tempat, dan list lombanya. Bebas desainnya asal eye-catching."',
+    deliverables:['JPG 1080×1350px (IG story format)','JPG A3 untuk cetak','Warna dominan merah putih'],
+    tags:['Poster','Event','Print Ready'],
+  },
+  {
+    week:2, type:'weekday', icon:'🏅',
+    title:'Template Sertifikat — LKP Bahasa Inggris',
+    client:'Bu Sarah / LKP Bright English',
+    deadline:'Hari ke-6 s/d 10',
+    estimasi:'Rp 75.000–100.000',
+    software:'Photoshop / Canva',
+    msg:'"Kami butuh template sertifikat kelulusan untuk peserta kursus kami. Desainnya harus terlihat resmi dan profesional. Ada logo lembaga di atas, nama peserta di tengah, tanda tangan direktur di bawah. Warna biru dongker dan gold."',
+    deliverables:['File PSD / template editable','PNG A4 landscape 300dpi','Kolom nama bisa diganti-ganti'],
+    tags:['Sertifikat','Template','Print'],
+  },
+  {
+    week:2, type:'weekend', icon:'▶️',
+    title:'Thumbnail YouTube — Channel Tutorial',
+    client:'Mas Rendi / BelajarDesign.id',
+    deadline:'Sabtu–Minggu minggu 2',
+    estimasi:'Rp 50.000–80.000',
+    software:'Photoshop / Canva',
+    msg:'"Bang, gue butuh template thumbnail YouTube yang bisa gue edit sendiri tiap episode. Stylenya bold, warna cerah, ada foto orang di kanan, judul gede di kiri. Mirip-mirip channel tutorial tech gitu lah. Bikin 1 template dulu, nanti kalau cocok gue order banyak."',
+    deliverables:['Template PSD / Canva editable','PNG 1280×720px (YouTube standard)','Font & warna konsisten'],
+    tags:['Thumbnail','YouTube','Template'],
+  },
+  {
+    week:3, type:'weekday', icon:'📣',
+    title:'Banner Digital — Toko Kue Online',
+    client:'Kak Fitri / Dapur Fitri',
+    deadline:'Hari ke-11 s/d 15',
+    estimasi:'Rp 75.000–100.000',
+    software:'Canva / Photoshop',
+    msg:'"Kak, saya mau promosi kue lebaran nih. Butuh banner buat dipasang di WA status, Instagram feed sama story. Ada foto kuenya nanti saya kirim, tinggal didesain yang cantik aja. Ada tulisan promo dan nomor WA juga ya."',
+    deliverables:['Banner IG Feed 1080×1080px','Banner IG Story 1080×1920px','Banner WA Status 1600×900px'],
+    tags:['Banner','Social Media','Promosi'],
+  },
+  {
+    week:3, type:'weekend', icon:'☕',
+    title:'Logo Baru — UMKM Minuman FreshCup',
+    client:'Pak Heru / FreshCup',
+    deadline:'Sabtu–Minggu minggu 3',
+    estimasi:'Rp 100.000–150.000',
+    software:'Affinity Designer',
+    msg:'"Saya mau bikin usaha minuman kekinian, namanya FreshCup. Butuh logo yang simple, modern, ada unsur gelas/minuman. Warna suka yang segar, hijau atau biru muda. Nanti mau dipake di cup, banner, sama sosmed."',
+    deliverables:['File SVG (vector)','PNG transparan berbagai ukuran','2 variasi warna (light & dark background)'],
+    tags:['Logo Baru','UMKM','Vector','SVG'],
+  },
+  {
+    week:4, type:'weekday', icon:'💼',
+    title:'Kartu Nama — Fotografer Freelance',
+    client:'Mas Iqbal / Fotografer Freelance',
+    deadline:'Hari ke-16 s/d 20',
+    estimasi:'Rp 50.000–75.000',
+    software:'Photoshop / Affinity Designer',
+    msg:'"Bro, aku butuh kartu nama yang keliatan profesional tapi tetep ada vibes kreatifnya. Ada foto aku, nama, nomor WA, IG, sama email. Ukuran standar kartu nama. Stylenya dark dan minimalis, kayak fotografer profesional gitu."',
+    deliverables:['PDF siap cetak (9×5.5cm, 300dpi, bleed 3mm)','PNG preview depan & belakang','CMYK color mode'],
+    tags:['Kartu Nama','Print','Minimalis'],
+  },
+  {
+    week:4, type:'weekend', icon:'🍜',
+    title:'Redesign Logo — Warung Soto Yanti',
+    client:'Bu Yanti / Warung Makan Soto Yanti',
+    deadline:'Sabtu–Minggu minggu 4',
+    estimasi:'Rp 75.000–100.000',
+    software:'Affinity Designer / Photoshop',
+    msg:'"Logo warung saya yang lama udah jelek banget, mau diredesain. Intinya tetap ada tulisan Soto Yanti sama gambar mangkok soto. Warna kuning-merah kayak yang sekarang tapi lebih segar dan modern. Mau dipake di spanduk baru sama plastik kresek."',
+    deliverables:['SVG + PNG resolusi tinggi','Versi horizontal & versi kotak','Warna kuning #FFB800 dan merah #CC0000'],
+    tags:['Logo Redesign','UMKM','Vector','Spanduk'],
+  },
+];
+
+const WEEK_INFO = {
+  1: { label: 'Minggu 1', sub: '2 project — hari ke-1 s/d 7' },
+  2: { label: 'Minggu 2', sub: '2 project — hari ke-8 s/d 14' },
+  3: { label: 'Minggu 3', sub: '2 project — hari ke-15 s/d 21' },
+  4: { label: 'Minggu 4', sub: '2 project — hari ke-22 s/d 30' },
+};
+
+// Load status from localStorage
+PROJECTS.forEach((p, i) => {
+  const saved = localStorage.getItem('imk_status_' + i);
+  if (saved) p.status = saved;
+  else p.status = 'todo';
+});
+
+let activeWeek = 1;
+let activeProj = null;
+
+function saveStatus(i) {
+  localStorage.setItem('imk_status_' + i, PROJECTS[i].status);
+}
+
+function setStatus(i, s) {
+  PROJECTS[i].status = s;
+  saveStatus(i);
+  renderMain();
+  renderBrief(i);
+  renderSidebar();
+  renderTopbar();
+}
+
+function setWeek(w) {
+  activeWeek = w;
+  activeProj = null;
+  [1,2,3,4].forEach(n => {
+    document.getElementById('wb'+n).classList.toggle('active', n===w);
+  });
+  renderMain();
+  renderBrief(null);
+}
+
+function selectProj(i) {
+  activeProj = i;
+  renderMain();
+  renderBrief(i);
+}
+
+function statusDot(s) {
+  const cls = s==='done'?'dot-done':s==='wip'?'dot-wip':'dot-todo';
+  const label = s==='done'?'Done':s==='wip'?'In Progress':'To Do';
+  return `<div class="status-dot"><div class="dot ${cls}"></div>${label}</div>`;
+}
+
+function renderMain() {
+  document.getElementById('weekTitle').textContent = WEEK_INFO[activeWeek].label;
+  document.getElementById('weekSub').textContent = WEEK_INFO[activeWeek].sub;
+  const wp = PROJECTS.filter(p => p.week === activeWeek);
+  document.getElementById('projList').innerHTML = wp.map(p => {
+    const i = PROJECTS.indexOf(p);
+    return `
+      <div class="proj-card${i===activeProj?' selected':''}" onclick="selectProj(${i})">
+        <div class="proj-icon ${p.type==='weekend'?'icon-we':'icon-wd'}">${p.icon}</div>
+        <div class="proj-info">
+          <h3>${p.title}</h3>
+          <p>${p.client}</p>
+        </div>
+        <div class="proj-right">
+          <span class="tag-type ${p.type==='weekend'?'tag-we':'tag-wd'}">${p.type==='weekend'?'Weekend':'Weekday'}</span>
+          ${statusDot(p.status)}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function renderBrief(i) {
+  const empty = document.getElementById('emptyState');
+  const content = document.getElementById('briefContent');
+  if (i === null) {
+    empty.style.display = 'flex';
+    content.style.display = 'none';
+    return;
+  }
+  const p = PROJECTS[i];
+  const initials = p.client.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+  empty.style.display = 'none';
+  content.style.display = 'block';
+  content.innerHTML = `
+    <div class="brief-from">
+      <div class="avatar">${initials}</div>
+      <span>Pesan dari <strong style="color:var(--text)">${p.client}</strong></span>
+    </div>
+    <div class="brief-title">${p.title}</div>
+    <div class="brief-client">${p.deadline} &nbsp;·&nbsp; ${p.type==='weekend'?'Weekend Project':'Weekday Project'}</div>
+    <div class="brief-msg">${p.msg}</div>
+
+    <div class="brief-section">
+      <p class="brief-section-label">Yang dikerjakan</p>
+      <ul class="deliv-list">${p.deliverables.map(d=>`<li>${d}</li>`).join('')}</ul>
+    </div>
+
+    <div class="brief-section">
+      <p class="brief-section-label">Software</p>
+      <div class="tag-wrap"><span class="tag violet">${p.software}</span></div>
+    </div>
+
+    <div class="brief-section">
+      <p class="brief-section-label">Tags</p>
+      <div class="tag-wrap">${p.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+    </div>
+
+    <div class="brief-section">
+      <p class="brief-section-label">Estimasi harga</p>
+      <div class="tag-wrap"><span class="tag price">${p.estimasi}</span></div>
+    </div>
+
+    <div class="brief-section">
+      <p class="brief-section-label">Update status</p>
+      <div class="status-row">
+        <button class="st-btn${p.status==='todo'?' a-todo':''}" onclick="setStatus(${i},'todo')">To Do</button>
+        <button class="st-btn${p.status==='wip'?' a-wip':''}" onclick="setStatus(${i},'wip')">In Progress</button>
+        <button class="st-btn${p.status==='done'?' a-done':''}" onclick="setStatus(${i},'done')">Done ✓</button>
+      </div>
+    </div>
+  `;
+}
+
+function renderSidebar() {
+  const done = PROJECTS.filter(p=>p.status==='done').length;
+  const wip = PROJECTS.filter(p=>p.status==='wip').length;
+  const pct = Math.round(done/PROJECTS.length*100);
+  document.getElementById('sbDone').textContent = done;
+  document.getElementById('sbWip').textContent = wip;
+  document.getElementById('sbBar').style.width = pct + '%';
+}
+
+function renderTopbar() {
+  const done = PROJECTS.filter(p=>p.status==='done').length;
+  document.getElementById('pillDone').textContent = done;
+}
+
+// Init
+renderMain();
+renderBrief(null);
+renderSidebar();
+renderTopbar();
+</script>
+</body>
+</html>
