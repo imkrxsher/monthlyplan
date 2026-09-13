@@ -8,6 +8,7 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500&display=swap"
     rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
       --bg: #0D0D14;
@@ -72,6 +73,7 @@
       letter-spacing: .04em;
       background: linear-gradient(90deg, var(--violet), var(--cyan));
       -webkit-background-clip: text;
+      background-clip: text;
       -webkit-text-fill-color: transparent;
       text-decoration: none;
     }
@@ -104,6 +106,38 @@
     .summary-pill span {
       color: var(--text);
       font-weight: 600;
+    }
+
+    .auth-form {
+      display: flex;
+      gap: .4rem;
+    }
+
+    .auth-input {
+      width: 150px;
+      padding: .35rem .55rem;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      background: var(--card);
+      color: var(--text);
+      font: inherit;
+      font-size: .72rem;
+      outline: none;
+    }
+
+    .auth-button {
+      padding: .35rem .6rem;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      background: var(--card2);
+      color: var(--text);
+      cursor: pointer;
+      font-size: .72rem;
+    }
+
+    .auth-status {
+      color: var(--muted);
+      font-size: .7rem;
     }
 
     /* ── LAYOUT ── */
@@ -614,6 +648,43 @@
       font-size: .75rem;
     }
 
+    .result-section {
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .result-upload {
+      display: flex;
+      flex-direction: column;
+      gap: .5rem;
+    }
+
+    .result-upload input[type="file"] {
+      width: 100%;
+      color: var(--muted);
+      font-size: .72rem;
+    }
+
+    .result-upload button {
+      padding: .5rem .7rem;
+      border: 0;
+      border-radius: 7px;
+      background: var(--cyan);
+      color: var(--bg);
+      cursor: pointer;
+      font-size: .75rem;
+      font-weight: 600;
+    }
+
+    .result-preview {
+      width: 100%;
+      max-height: 180px;
+      object-fit: cover;
+      border-radius: 7px;
+      border: 1px solid var(--border);
+    }
+
     /* ── MOBILE ── */
     @media (max-width: 900px) {
       .layout {
@@ -645,6 +716,11 @@
     <span class="topbar-title">Project Plan — 1 Bulan</span>
     <div class="topbar-right">
       <div class="summary-pill">Done <span id="pillDone">0</span> / <span id="pillTotal">8</span></div>
+      <form class="auth-form" onsubmit="signIn(event)">
+        <input class="auth-input" id="authEmail" type="email" placeholder="Email admin" required />
+        <button class="auth-button" type="submit">Login link</button>
+      </form>
+      <span class="auth-status" id="authStatus">Mode lokal</span>
     </div>
   </header>
 
@@ -706,6 +782,11 @@
   </div>
 
   <script>
+    const SUPABASE_URL = 'PASTE_SUPABASE_PROJECT_URL';
+    const SUPABASE_ANON_KEY = 'PASTE_SUPABASE_ANON_KEY';
+    const hasSupabaseConfig = !SUPABASE_URL.startsWith('PASTE_') && !SUPABASE_ANON_KEY.startsWith('PASTE_');
+    const supabaseClient = hasSupabaseConfig ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
     const PROJECTS = [
       {
         week: 1, type: 'weekday', icon: '🔁',
@@ -814,6 +895,55 @@
     let activeWeek = 1;
     let activeProj = null;
 
+    function mapRemoteProject(project) {
+      return {
+        remoteId: project.id,
+        week: Math.min(4, Math.max(1, Math.ceil((new Date(project.created_at).getDate() || 1) / 7))),
+        type: 'weekday',
+        icon: '📥',
+        title: project.service,
+        client: [project.client_name, project.email, project.whatsapp].filter(Boolean).join(' · '),
+        deadline: project.deadline ? 'Deadline: ' + project.deadline : 'Deadline belum ditentukan',
+        estimasi: 'Menunggu penawaran',
+        software: 'Ditentukan setelah brief',
+        msg: project.details,
+        deliverables: [],
+        tags: ['Pesanan masuk'],
+        status: project.status || 'todo',
+        resultUrl: project.result_url || '',
+        published: project.published === true
+      };
+    }
+
+    async function loadRemoteProjects() {
+      if (!supabaseClient) return;
+      const { data, error } = await supabaseClient.from('projects').select('*').order('created_at', { ascending: true });
+      if (error || !data || !data.length) return;
+      PROJECTS.length = 0;
+      data.forEach(project => PROJECTS.push(mapRemoteProject(project)));
+      document.getElementById('pillTotal').textContent = PROJECTS.length;
+      renderMain();
+      renderSidebar();
+      renderTopbar();
+    }
+
+    async function signIn(event) {
+      event.preventDefault();
+      if (!supabaseClient) {
+        document.getElementById('authStatus').textContent = 'Isi config Supabase dulu';
+        return;
+      }
+      const email = document.getElementById('authEmail').value.trim();
+      const { error } = await supabaseClient.auth.signInWithOtp({ email, options: { emailRedirectTo: window.location.href } });
+      document.getElementById('authStatus').textContent = error ? error.message : 'Cek email untuk login';
+    }
+
+    async function updateRemoteProject(i, fields) {
+      if (!supabaseClient || !PROJECTS[i].remoteId) return;
+      const { error } = await supabaseClient.from('projects').update(fields).eq('id', PROJECTS[i].remoteId);
+      if (error) document.getElementById('authStatus').textContent = error.message;
+    }
+
     function saveStatus(i) {
       localStorage.setItem('imk_status_' + i, PROJECTS[i].status);
     }
@@ -821,6 +951,7 @@
     function setStatus(i, s) {
       PROJECTS[i].status = s;
       saveStatus(i);
+      updateRemoteProject(i, { status: s });
       renderMain();
       renderBrief(i);
       renderSidebar();
@@ -920,6 +1051,16 @@
       </div>
     </div>
 
+    <div class="result-section">
+      <p class="brief-section-label">Hasil desain</p>
+      ${p.resultUrl ? `<img class="result-preview" src="${p.resultUrl}" alt="Hasil desain ${p.title}">` : ''}
+      <form class="result-upload" onsubmit="uploadResult(event, ${i})">
+        <input id="resultFile" type="file" accept="image/*" required />
+        <button type="submit">Upload hasil</button>
+      </form>
+      ${p.published ? '<p class="auth-status">Sudah tampil di portfolio</p>' : ''}
+    </div>
+
     <div class="chat-section">
       <p class="brief-section-label">Chat dengan AI</p>
       <div class="chat-messages" id="chatMessages">
@@ -931,6 +1072,31 @@
       </form>
     </div>
   `;
+    }
+
+    async function uploadResult(event, i) {
+      event.preventDefault();
+      if (!supabaseClient || !PROJECTS[i].remoteId) {
+        document.getElementById('authStatus').textContent = 'Project belum terhubung ke Supabase';
+        return;
+      }
+      const file = document.getElementById('resultFile').files[0];
+      if (!file) return;
+      const path = PROJECTS[i].remoteId + '/' + Date.now() + '-' + file.name.replace(/[^a-zA-Z0-9._-]/g, '-');
+      const upload = await supabaseClient.storage.from('project-results').upload(path, file, { upsert: true });
+      if (upload.error) {
+        document.getElementById('authStatus').textContent = upload.error.message;
+        return;
+      }
+      const { data } = supabaseClient.storage.from('project-results').getPublicUrl(path);
+      PROJECTS[i].resultUrl = data.publicUrl;
+      PROJECTS[i].published = true;
+      await updateRemoteProject(i, { result_url: data.publicUrl, published: true, status: 'done' });
+      PROJECTS[i].status = 'done';
+      renderBrief(i);
+      renderMain();
+      renderSidebar();
+      renderTopbar();
     }
 
     function sendChat(event, i) {
@@ -973,6 +1139,15 @@
     renderBrief(null);
     renderSidebar();
     renderTopbar();
+    if (supabaseClient) {
+      supabaseClient.auth.onAuthStateChange((event, session) => {
+        document.getElementById('authStatus').textContent = session ? 'Terhubung' : 'Belum login';
+        if (session) loadRemoteProjects();
+      });
+      supabaseClient.auth.getSession().then(({ data }) => {
+        if (data.session) loadRemoteProjects();
+      });
+    }
   </script>
 </body>
 
