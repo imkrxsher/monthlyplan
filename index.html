@@ -782,8 +782,8 @@
   </div>
 
   <script>
-    const SUPABASE_URL = 'PASTE_SUPABASE_PROJECT_URL';
-    const SUPABASE_ANON_KEY = 'PASTE_SUPABASE_ANON_KEY';
+    const SUPABASE_URL = 'https://bdsvrmzitupjhyicwocg.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJkc3ZybXppdHVwamh5aWN3b2NnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkyODA5MDEsImV4cCI6MjEwNDg1NjkwMX0.Yq25YGjq6fNHCDNpSP2bPFU8l3o_FT0cHhjzAu4m4-w';
     const hasSupabaseConfig = !SUPABASE_URL.startsWith('PASTE_') && !SUPABASE_ANON_KEY.startsWith('PASTE_');
     const supabaseClient = hasSupabaseConfig ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
