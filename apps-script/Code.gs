@@ -19,6 +19,10 @@ function doPost(e) {
       }
     }
 
+    console.log('contentType=', contentType);
+    console.log('rawBody=', rawBody);
+    console.log('parsedData=', JSON.stringify(data));
+
     const project = {
       client_name: String(data.name || '').trim(),
       email: String(data.email || '').trim(),
