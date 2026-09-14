@@ -1,8 +1,25 @@
 function doPost(e) {
   try {
-    const data = e.postData && e.postData.contents
-      ? JSON.parse(e.postData.contents)
-      : e.parameter;
+    const rawBody = e.postData && e.postData.contents ? e.postData.contents : '';
+    const contentType = (e.postData && e.postData.type) ? e.postData.type : '';
+
+    let data = e.parameter || {};
+
+    if (rawBody && contentType.includes('application/json')) {
+      data = JSON.parse(rawBody);
+    } else if (rawBody && contentType.includes('application/x-www-form-urlencoded')) {
+      const params = {};
+      const pairs = rawBody.split('&');
+      for (const pair of pairs) {
+        if (!pair) continue;
+        const [key, value] = pair.split('=');
+        const decodedKey = decodeURIComponent(key.replace(/\+/g, ' '));
+        const decodedValue = decodeURIComponent((value || '').replace(/\+/g, ' '));
+        params[decodedKey] = decodedValue;
+      }
+      data = params;
+    }
+
     const project = {
       client_name: String(data.name || '').trim(),
       email: String(data.email || '').trim(),
