@@ -5,19 +5,18 @@ function doPost(e) {
 
     let data = e.parameter || {};
 
-    if (rawBody && contentType.includes('application/json')) {
-      data = JSON.parse(rawBody);
-    } else if (rawBody && contentType.includes('application/x-www-form-urlencoded')) {
-      const params = {};
-      const pairs = rawBody.split('&');
-      for (const pair of pairs) {
-        if (!pair) continue;
-        const [key, value] = pair.split('=');
-        const decodedKey = decodeURIComponent(key.replace(/\+/g, ' '));
-        const decodedValue = decodeURIComponent((value || '').replace(/\+/g, ' '));
-        params[decodedKey] = decodedValue;
+    if (rawBody) {
+      try {
+        if (contentType.includes('application/json')) {
+          data = JSON.parse(rawBody);
+        } else if (contentType.includes('application/x-www-form-urlencoded')) {
+          data = parseFormBody(rawBody);
+        } else if (rawBody.includes('=')) {
+          data = parseFormBody(rawBody);
+        }
+      } catch (parseError) {
+        data = parseFormBody(rawBody);
       }
-      data = params;
     }
 
     const project = {
@@ -48,6 +47,23 @@ function doPost(e) {
   } catch (error) {
     return jsonResponse({ ok: false, error: error.message }, 500);
   }
+}
+
+function parseFormBody(rawBody) {
+  const params = {};
+  const pairs = rawBody.split('&');
+
+  for (const pair of pairs) {
+    if (!pair) continue;
+    const index = pair.indexOf('=');
+    const key = index === -1 ? pair : pair.slice(0, index);
+    const value = index === -1 ? '' : pair.slice(index + 1);
+    const decodedKey = decodeURIComponent(key.replace(/\+/g, ' '));
+    const decodedValue = decodeURIComponent((value || '').replace(/\+/g, ' '));
+    params[decodedKey] = decodedValue;
+  }
+
+  return params;
 }
 
 function insertProject(project) {
